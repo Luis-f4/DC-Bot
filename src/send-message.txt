@@ -1,0 +1,58 @@
+require('dotenv').config();
+const { Client, IntentsBitField, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+
+const client = new Client({
+    intents: [
+        IntentsBitField.Flags.Guilds,
+        IntentsBitField.Flags.GuildMembers,
+        IntentsBitField.Flags.GuildMessages,
+        IntentsBitField.Flags.MessageContent,
+    ],
+});
+
+const roles = [
+    {
+        id: '1312795322304696413',
+        label: 'Green',
+    },
+    {
+        id: '1312795366311333930',
+        label: 'Red',
+    },
+    {
+        id: '1312795651829928026',
+        label: 'Blue',
+    },
+];
+
+client.on('ready', async () => {
+    console.log(`${client.user.tag} is online`);
+
+    try {
+        const channel = client.channels.cache.get('1243488727800746059');
+        if (!channel) {
+            console.log('Channel not found');
+            return;
+        }
+
+        const row = new ActionRowBuilder().addComponents(
+            roles.map((role) =>
+                new ButtonBuilder()
+                    .setCustomId(role.id)
+                    .setLabel(role.label)
+                    .setStyle(ButtonStyle.Primary)
+            )
+        );
+
+        await channel.send({
+            content: 'Claim or remove a role below.',
+            components: [row],
+        });
+
+        console.log('Message sent successfully');
+    } catch (err) {
+        console.error('An error occurred:', err);
+    }
+});
+
+client.login(process.env.TOKEN);

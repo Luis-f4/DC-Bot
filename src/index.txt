@@ -1,0 +1,86 @@
+require('dotenv').config();
+const { Client, IntentsBitField, EmbedBuilder, ActivityType } = require('discord.js');
+
+const client = new Client({
+    intents: [
+        IntentsBitField.Flags.Guilds,
+        IntentsBitField.Flags.GuildMembers,
+        IntentsBitField.Flags.GuildMessages,
+        IntentsBitField.Flags.MessageContent,
+    ],
+});
+
+client.on('ready', () => {
+    console.log(`${client.user.tag} is online`);
+
+    // client.user.setActivity({
+    //     name: "seinem Meister",
+    //     type: ActivityType.Listening
+    // });
+
+    client.user.setActivity({
+        name: " ",
+        type: ActivityType.Streaming,
+        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    });
+});
+
+client.on('messageCreate', (message) => {
+    if (message.author.bot) return;
+
+    if (message.content === "Hallo McBotface") {
+        message.reply("Was geht ab?!");
+    }
+});
+
+client.on('interactionCreate', async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === "add") {
+        const num1 = interaction.options.get('first-number')?.value || 0;
+        const num2 = interaction.options.get('second-number')?.value || 0;
+        interaction.reply(`The sum is ${num1 + num2}`);
+    }
+
+    if (interaction.commandName === "embed") {
+        const embed = new EmbedBuilder()
+            .setTitle("Embed title")
+            .setDescription("Description")
+            .setColor("Random")
+            .addFields(
+                { name: "Field", value: "some random value", inline: true },
+                { name: "Field2", value: "some random value2", inline: true },
+            );
+        interaction.reply({ embeds: [embed] });
+    }
+});
+
+client.on('interactionCreate', async (interaction) => {
+    try {
+        if (interaction.isButton()) {
+            await interaction.deferReply({ ephemeral: true });
+            const role = interaction.guild.roles.cache.get(interaction.customId);
+            if (!role) {
+                await interaction.reply({
+                    content: 'I couldn’t find that role.',
+                    ephemeral: true,
+                });
+                return;
+            }
+
+            const hasRole = interaction.member.roles.cache.has(role.id);
+
+            if (hasRole) {
+                await interaction.member.roles.remove(role);
+                await interaction.editReply(`The role ${role.name} has been removed.`);
+            } else {
+                await interaction.member.roles.add(role);
+                await interaction.editReply(`The role ${role.name} has been added.`);
+            }
+        }
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+client.login(process.env.TOKEN);
